@@ -1,122 +1,92 @@
 #!/usr/bin/env python3
 """
-replace_ips.py v0.3
+replace_ips.py (v0.1)
 
-This script reads a mapping file (hostname_to_ip_mapping.txt) that contains lines in the format:
-    hostname, IP address, description
-Comments (lines starting with '#') and empty lines are ignored.
-
-Usage:
-    Run the script:
-        python replace_ips.py
-    Then, paste your text. When finished, type "==" on a new line to signal the end of input.
-
-The script will scan the pasted text for IP addresses. If an IP is found in the mapping file,
-it will be replaced with the corresponding hostname. After processing, the script prints:
-    - The modified text.
-    - A summary of all substitutions in the format:
-        original_IP -> hostname - description
+This script reads a mapping file (hostname_mapping.txt) containing hostnames, IP addresses, and descriptions.
+It then accepts multi-line text input from the user (terminated by a line containing only "=="),
+replaces any IP addresses in the text with the corresponding hostname if a match is found,
+and prints the modified text.
 """
 
-import re
 import sys
+import re
 
-def load_mapping(mapping_file: str) -> dict:
+def load_mapping(filename):
     """
-    Load the hostname to IP mapping from a file.
-
-    Each valid line in the file should have three comma-separated values:
-      hostname, IP address, description
-
-    Lines starting with '#' or empty lines are skipped.
+    Load the mapping of IP addresses to hostnames from the file.
+    Each valid line should contain three comma-separated values:
+    hostname, IP address, and description.
+    Lines starting with '#' or empty lines are ignored.
 
     Args:
-        mapping_file (str): The path to the mapping file.
+        filename (str): The mapping file name.
 
     Returns:
-        dict: A dictionary with IP addresses as keys and a tuple (hostname, description) as values.
+        dict: A dictionary mapping IP addresses (str) to hostnames (str).
     """
     mapping = {}
     try:
-        with open(mapping_file, 'r') as file:
+        with open(filename, 'r') as file:
             for line in file:
                 line = line.strip()
-                # Skip empty lines or comment lines
+                # Skip comments and empty lines
                 if not line or line.startswith('#'):
                     continue
-                # Split the line into parts and strip any extra whitespace
-                parts = [part.strip() for part in line.split(',')]
-                if len(parts) >= 3:
-                    hostname, ip, description = parts[0], parts[1], parts[2]
-                    mapping[ip] = (hostname, description)
+                parts = line.split(',')
+                if len(parts) != 3:
+                    continue  # Skip malformed lines
+                hostname = parts[0].strip()
+                ip_address = parts[1].strip()
+                # We only need the hostname for v0.1; description is ignored.
+                mapping[ip_address] = hostname
     except FileNotFoundError:
-        print(f"Error: Mapping file '{mapping_file}' not found.")
+        print(f"Error: Mapping file '{filename}' not found.")
         sys.exit(1)
     return mapping
 
-def get_user_input() -> str:
+def get_user_input():
     """
-    Prompt the user to paste text input. Input ends when a line with '==' is entered.
+    Read multi-line input from the user until a line containing only "==" is entered.
 
     Returns:
-        str: The complete text input provided by the user.
+        str: The complete text input.
     """
-    print("Paste your text below. When finished, type '==' on a new line and press Enter:")
-    input_lines = []
+    print("Enter your text. End with a line containing only '==':")
+    lines = []
     while True:
-        # Read a line from standard input
-        line = sys.stdin.readline()
-        # Check if the termination signal is entered (line with '==')
-        if line.rstrip() == "==":
+        try:
+            line = input()
+        except EOFError:
             break
-        input_lines.append(line)
-    return "".join(input_lines)
+        if line.strip() == "==":
+            break
+        lines.append(line)
+    return "\n".join(lines)
+
+def replace_ips(text, mapping):
+    """
+    Replace IPv4 addresses in the text with corresponding hostnames if found in the mapping.
+
+    Args:
+        text (str): The original text.
+        mapping (dict): A dictionary mapping IP addresses to hostnames.
+
+    Returns:
+        str: The modified text.
+    """
+    # Regular expression to match IPv4 addresses
+    ip_regex = re.compile(r'\b((?:\d{1,3}\.){3}\d{1,3})\b')
+    # Replace found IP with hostname if available, otherwise keep the original IP.
+    return ip_regex.sub(lambda match: mapping.get(match.group(1), match.group(1)), text)
 
 def main():
-    # Define the mapping file name
-    MAPPING_FILE = "hostname_to_ip_mapping.txt"
+    mapping_file = "hostname_mapping.txt"
+    ip_mapping = load_mapping(mapping_file)
+    user_text = get_user_input()
+    modified_text = replace_ips(user_text, ip_mapping)
 
-    # Load the IP-to-hostname mapping from the file
-    ip_to_hostname = load_mapping(MAPPING_FILE)
-
-    # Get the text input from the user
-    original_text = get_user_input()
-
-    # Regular expression pattern to match IPv4 addresses.
-    # This pattern matches four groups of 1-3 digits separated by dots.
-    ip_pattern = re.compile(r'\b(?:\d{1,3}\.){3}\d{1,3}\b')
-
-    # Dictionary to store details of IPs that were replaced.
-    # Key: original IP; Value: tuple (hostname, description)
-    replaced_ips = {}
-
-    def replace_ip(match: re.Match) -> str:
-        """
-        Replacement function used with re.sub().
-        If the matched IP is in the mapping, return the hostname;
-        otherwise, return the original IP.
-        """
-        ip_address = match.group(0)
-        if ip_address in ip_to_hostname:
-            hostname, description = ip_to_hostname[ip_address]
-            replaced_ips[ip_address] = (hostname, description)
-            return hostname  # Replace with hostname only
-        return ip_address
-
-    # Replace all matching IP addresses in the original text.
-    modified_text = ip_pattern.sub(replace_ip, original_text)
-
-    # Display the modified text.
-    print("\n--- Modified Text ---")
+    print("\nModified Text:")
     print(modified_text)
 
-    # Display a summary of all substitutions made.
-    if replaced_ips:
-        print("\n--- Replaced IPs Summary ---")
-        for ip, (hostname, description) in replaced_ips.items():
-            print(f"{ip} -> {hostname} - {description}")
-    else:
-        print("\nNo IP addresses were replaced.")
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
