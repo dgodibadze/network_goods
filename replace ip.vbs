@@ -29,6 +29,24 @@ Function GenerateRandomFileName(prefix, ext)
     GenerateRandomFileName = fileName
 End Function
 
+' Base64-encode a string using an ADODB.Stream and MSXML2.DOMDocument.
+Function Base64Encode(inData)
+    Dim stream, xml, node
+    Set stream = CreateObject("ADODB.Stream")
+    stream.Type = 2 ' text
+    stream.Charset = "utf-8"
+    stream.Open
+    stream.WriteText inData
+    stream.Position = 0
+    stream.Type = 1 ' binary
+    Set xml = CreateObject("MSXML2.DOMDocument")
+    Set node = xml.createElement("base64")
+    node.dataType = "bin.base64"
+    node.nodeTypedValue = stream.Read
+    Base64Encode = node.text
+    stream.Close
+End Function
+
 ' ============================
 ' Initialization & Setup
 ' ============================
@@ -76,6 +94,15 @@ Set errorLogFile = fso.CreateTextFile(errorLogFileName, True)
 clipboardText = GetClipboardText()
 modifiedText = clipboardText
 
+' -------------------------------
+' Authentication Setup for Infoblox
+' -------------------------------
+Dim username, password, credentials, authHeader
+username = "USERNAME234"
+password = InputBox("Enter Infoblox Password:", "Infoblox Authentication")
+credentials = username & ":" & password
+authHeader = "Basic " & Base64Encode(credentials)
+
 ' ============================
 ' Extract IPv4 Addresses
 ' ============================
@@ -109,6 +136,8 @@ For i = 0 To matches.Count - 1
         On Error Resume Next
         Set xmlHTTP = CreateObject("MSXML2.XMLHTTP")
         xmlHTTP.Open "GET", apiUrl, False
+        ' Set the Authorization header using the credentials.
+        xmlHTTP.setRequestHeader "Authorization", authHeader
         xmlHTTP.Send
         If Err.Number <> 0 Then
             errorLogFile.WriteLine "Error requesting URL for IP " & currentIP & ": " & Err.Description
@@ -193,9 +222,8 @@ htaFileName = tempFolder & GenerateRandomFileName("output", "hta")
 
 ' Build the HTA content:
 ' - The outer window is set to 300x150 (half the previous size).
-' - The outer window has no scrollbars (overflow hidden).
-' - The window is resizable and has maximize/minimize buttons.
-' - The textarea fills the window (100% width and height) with its own scrollbars.
+' - The outer window has no scrollbars (overflow hidden) and is resizable.
+' - The textarea fills the outer window (100% width and height) with its own scrollbars (overflow auto).
 htaContent = "<html>" & vbCrLf & _
     "<head>" & vbCrLf & _
     "  <title>Data Output</title>" & vbCrLf & _
