@@ -31,7 +31,6 @@ End Function
 ' ============================
 ' Initialization & Setup
 ' ============================
-
 Dim clipboardText, modifiedText
 Dim totalIPs, resolvedCount
 totalIPs = 0
@@ -42,18 +41,18 @@ Dim resolvedMapping, unresolvedIPs
 Set resolvedMapping = CreateObject("Scripting.Dictionary")
 Set unresolvedIPs = CreateObject("Scripting.Dictionary")
 
-' Get the folder where the script is located
-Dim scriptFullName, scriptFolder
+' Get the folder where the script is located using FileSystemObject's GetParentFolderName
+Dim fso, scriptFullName, scriptFolder
+Set fso = CreateObject("Scripting.FileSystemObject")
 scriptFullName = WScript.ScriptFullName
-scriptFolder = Left(scriptFullName, InStrRev(scriptFullName, "\"))
+scriptFolder = fso.GetParentFolderName(scriptFullName) & "\"
 
 ' Create an error log file in the same folder.
 Dim timestamp, errorLogFileName
 timestamp = Replace(Replace(Now, ":", "-"), " ", "_")
 errorLogFileName = scriptFolder & "error_log_" & timestamp & ".txt"
 
-Dim fso, errorLogFile
-Set fso = CreateObject("Scripting.FileSystemObject")
+Dim errorLogFile
 Set errorLogFile = fso.CreateTextFile(errorLogFileName, True)
 
 ' Retrieve the clipboard content
@@ -92,9 +91,6 @@ For i = 0 To matches.Count - 1
             Err.Clear
             unresolvedIPs.Add currentIP, "HTTP request error"
             On Error GoTo 0
-            ' Skip further processing for this IP.
-            ContinueLoop:
-            ' (VBScript does not support 'Continue For', so we simply let the code fall through.)
         Else
             On Error GoTo 0
             ' Process only if the HTTP status is 200 (OK)
@@ -110,7 +106,7 @@ For i = 0 To matches.Count - 1
                     errorLogFile.WriteLine "XML parsing error for IP " & currentIP & ": " & dom.parseError.reason
                     unresolvedIPs.Add currentIP, "XML parsing error"
                 Else
-                    ' Extract the hostname from the <host> element (per your instruction)
+                    ' Extract the hostname from the <host> element (always use hostname)
                     Set hostNode = dom.selectSingleNode("//host")
                     If Not hostNode Is Nothing Then
                         hostname = hostNode.text
