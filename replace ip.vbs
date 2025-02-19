@@ -41,22 +41,20 @@ Dim resolvedMapping, unresolvedIPs
 Set resolvedMapping = CreateObject("Scripting.Dictionary")
 Set unresolvedIPs = CreateObject("Scripting.Dictionary")
 
-' Use predefined folder location "C:\Users\" for all files
-Dim logFolder
-logFolder = "C:\Users\"
+' Use the Windows temporary folder for all files.
+Dim tempFolder, shell, fso, timestamp, errorLogFileName
+Set shell = CreateObject("WScript.Shell")
+tempFolder = shell.ExpandEnvironmentStrings("%TEMP%") & "\"
 
-' Create FileSystemObject and ensure the folder exists
-Dim fso
 Set fso = CreateObject("Scripting.FileSystemObject")
-If Not fso.FolderExists(logFolder) Then
-    fso.CreateFolder(logFolder)
+' (The temp folder should exist, but we can check if needed)
+If Not fso.FolderExists(tempFolder) Then
+    fso.CreateFolder(tempFolder)
 End If
 
-' Create an error log file in the predefined folder.
-Dim timestamp, errorLogFileName
+' Create an error log file in the temp folder.
 timestamp = Replace(Replace(CStr(Now), ":", "-"), " ", "_")
-errorLogFileName = logFolder & "error_log_" & timestamp & ".txt"
-
+errorLogFileName = tempFolder & "error_log_" & timestamp & ".txt"
 Dim errorLogFile
 Set errorLogFile = fso.CreateTextFile(errorLogFileName, True)
 
@@ -178,7 +176,7 @@ On Error GoTo 0
 ' Write Output to an HTA File
 ' ============================
 Dim htaFileName, htaFile, htaContent
-htaFileName = logFolder & GenerateRandomFileName("output", "hta")
+htaFileName = tempFolder & GenerateRandomFileName("output", "hta")
 
 ' Build the HTA content with a text area to display the data
 htaContent = "<html>" & vbCrLf & _
@@ -204,8 +202,6 @@ errorLogFile.Close
 ' ============================
 ' Launch the HTA to Display the Output
 ' ============================
-Dim shell
-Set shell = CreateObject("WScript.Shell")
 shell.Run "mshta.exe """ & htaFileName & """", 1, False
 
 ' End of Script
