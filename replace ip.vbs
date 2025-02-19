@@ -41,9 +41,9 @@ Dim resolvedMapping, unresolvedIPs
 Set resolvedMapping = CreateObject("Scripting.Dictionary")
 Set unresolvedIPs = CreateObject("Scripting.Dictionary")
 
-' Use predefined folder location "C:\"
+' Use predefined folder location "C:\Users\" for all files
 Dim logFolder
-logFolder = "C:\"
+logFolder = "C:\Users\"
 
 ' Create an error log file in the predefined folder.
 Dim fso, timestamp, errorLogFileName
