@@ -205,4 +205,23 @@ htaContent = "<html>" & vbCrLf & _
     "  <HTA:APPLICATION id='DataViewer' APPLICATIONNAME='DataViewer' RESIZABLE='yes' WINDOWWIDTH='600' WINDOWHEIGHT='300' " & _
     "BORDER='thin' CAPTION='yes' SHOWINTASKBAR='yes' SINGLEINSTANCE='yes'>" & vbCrLf & _
     "  <style>body { font-family: sans-serif; margin: 10px; } " & _
-    "textarea { width:
+    "textarea { width: 100%; height: 250px; }</style>" & vbCrLf & _
+    "</head>" & vbCrLf & _
+    "<body>" & vbCrLf & _
+    "  <textarea id='dataText' readonly='true'>" & modifiedText & "</textarea>" & vbCrLf & _
+    "</body>" & vbCrLf & _
+    "</html>"
+
+Set htaFile = fso.CreateTextFile(htaFileName, True)
+htaFile.Write htaContent
+htaFile.Close
+
+' Close the error log file.
+errorLogFile.Close
+
+' ============================
+' Launch the HTA to Display the Output
+' ============================
+shell.Run "mshta.exe """ & htaFileName & """", 1, False
+
+' End of Script
