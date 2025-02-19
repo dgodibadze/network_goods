@@ -4,22 +4,25 @@ Option Explicit
 ' Helper Functions
 ' ============================
 
-' Get clipboard text using an HTML file object.
+' Alternative function to get clipboard text via PowerShell.
 Function GetClipboardText()
-    Dim html, clipText
-    Set html = CreateObject("htmlfile")
-    clipText = html.ParentWindow.ClipboardData.GetData("Text")
+    Dim shell, exec, clipText
+    Set shell = CreateObject("WScript.Shell")
+    ' Execute the PowerShell command to get clipboard contents.
+    Set exec = shell.Exec("powershell -command Get-Clipboard")
+    clipText = exec.StdOut.ReadAll()
     GetClipboardText = clipText
 End Function
 
-' Set clipboard text using an HTML file object.
+' Subroutine to set clipboard text using an HTML file object.
+' (This method remains unchanged.)
 Sub SetClipboardText(newText)
     Dim html
     Set html = CreateObject("htmlfile")
     html.ParentWindow.ClipboardData.SetData "Text", newText
 End Sub
 
-' Generate a random filename given a prefix and extension.
+' Function to generate a random filename given a prefix and extension.
 Function GenerateRandomFileName(prefix, ext)
     Dim randomNumber, fileName
     Randomize
@@ -44,7 +47,6 @@ Set unresolvedIPs = CreateObject("Scripting.Dictionary")
 ' Use the Windows temporary folder for all files.
 Dim tempFolder, shell, fso, timestamp, errorLogFileName
 Set shell = CreateObject("WScript.Shell")
-
 tempFolder = shell.ExpandEnvironmentStrings("%TEMP%")
 If tempFolder = "" Or tempFolder = "%TEMP%" Then
     WScript.Echo "Error: Temporary folder not found. Please ensure the %TEMP% environment variable is set."
@@ -73,7 +75,7 @@ errorLogFileName = tempFolder & "error_log_" & timestamp & ".txt"
 Dim errorLogFile
 Set errorLogFile = fso.CreateTextFile(errorLogFileName, True)
 
-' Retrieve the clipboard content.
+' Retrieve the clipboard content using the new method.
 clipboardText = GetClipboardText()
 modifiedText = clipboardText
 
@@ -104,7 +106,6 @@ modifiedText = modifiedText & vbCrLf & debugIPs & vbCrLf
 Dim xmlHTTP, dom, hostNode, hostname, apiUrl
 For i = 0 To matches.Count - 1
     currentIP = matches(i).Value
-    ' Process each IP only once.
     If Not resolvedMapping.Exists(currentIP) And Not unresolvedIPs.Exists(currentIP) Then
         apiUrl = "https://infobloxgm.com/wapi/v2.10/record:host?ipv4addr=" & currentIP
 
@@ -198,7 +199,6 @@ Dim htaFileName, htaFile, htaContent
 htaFileName = tempFolder & GenerateRandomFileName("output", "hta")
 
 ' Build the HTA content with a smaller, resizable window.
-' The HTA:APPLICATION tag now includes WINDOWWIDTH and WINDOWHEIGHT.
 htaContent = "<html>" & vbCrLf & _
     "<head>" & vbCrLf & _
     "  <title>Data Output</title>" & vbCrLf & _
