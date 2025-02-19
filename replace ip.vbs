@@ -41,16 +41,15 @@ Dim resolvedMapping, unresolvedIPs
 Set resolvedMapping = CreateObject("Scripting.Dictionary")
 Set unresolvedIPs = CreateObject("Scripting.Dictionary")
 
-' Get the folder where the script is located using FileSystemObject's GetParentFolderName
-Dim fso, scriptFullName, scriptFolder
-Set fso = CreateObject("Scripting.FileSystemObject")
-scriptFullName = WScript.ScriptFullName
-scriptFolder = fso.GetParentFolderName(scriptFullName) & "\"
+' Use predefined folder location "C:\"
+Dim logFolder
+logFolder = "C:\"
 
-' Create an error log file in the same folder.
-Dim timestamp, errorLogFileName
+' Create an error log file in the predefined folder.
+Dim fso, timestamp, errorLogFileName
+Set fso = CreateObject("Scripting.FileSystemObject")
 timestamp = Replace(Replace(Now, ":", "-"), " ", "_")
-errorLogFileName = scriptFolder & "error_log_" & timestamp & ".txt"
+errorLogFileName = logFolder & "error_log_" & timestamp & ".txt"
 
 Dim errorLogFile
 Set errorLogFile = fso.CreateTextFile(errorLogFileName, True)
@@ -173,7 +172,7 @@ On Error GoTo 0
 ' Write Output to a Temporary File
 ' ============================
 Dim tempFileName, tempFile
-tempFileName = scriptFolder & GenerateRandomFileName("output", "txt")
+tempFileName = logFolder & GenerateRandomFileName("output", "txt")
 Set tempFile = fso.CreateTextFile(tempFileName, True)
 tempFile.Write modifiedText
 tempFile.Close
