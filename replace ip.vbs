@@ -175,22 +175,37 @@ End If
 On Error GoTo 0
 
 ' ============================
-' Write Output to a Temporary File
+' Write Output to an HTA File
 ' ============================
-Dim tempFileName, tempFile
-tempFileName = logFolder & GenerateRandomFileName("output", "txt")
-Set tempFile = fso.CreateTextFile(tempFileName, True)
-tempFile.Write modifiedText
-tempFile.Close
+Dim htaFileName, htaFile, htaContent
+htaFileName = logFolder & GenerateRandomFileName("output", "hta")
+
+' Build the HTA content with a text area to display the data
+htaContent = "<html>" & vbCrLf & _
+    "<head>" & vbCrLf & _
+    "  <title>Data Output</title>" & vbCrLf & _
+    "  <HTA:APPLICATION id='DataViewer' APPLICATIONNAME='DataViewer' " & _
+    "BORDER='thin' CAPTION='yes' SHOWINTASKBAR='yes' SINGLEINSTANCE='yes'>" & vbCrLf & _
+    "  <style>body { font-family: sans-serif; margin: 10px; } " & _
+    "textarea { width: 100%; height: 400px; }</style>" & vbCrLf & _
+    "</head>" & vbCrLf & _
+    "<body>" & vbCrLf & _
+    "  <textarea id='dataText' readonly='true'>" & modifiedText & "</textarea>" & vbCrLf & _
+    "</body>" & vbCrLf & _
+    "</html>"
+
+Set htaFile = fso.CreateTextFile(htaFileName, True)
+htaFile.Write htaContent
+htaFile.Close
 
 ' Close the error log file
 errorLogFile.Close
 
 ' ============================
-' Launch Notepad to Display the Output
+' Launch the HTA to Display the Output
 ' ============================
 Dim shell
 Set shell = CreateObject("WScript.Shell")
-shell.Run "notepad.exe """ & tempFileName & """", 1, False
+shell.Run "mshta.exe """ & htaFileName & """", 1, False
 
 ' End of Script
