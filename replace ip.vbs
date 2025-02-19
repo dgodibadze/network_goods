@@ -191,7 +191,11 @@ On Error GoTo 0
 Dim htaFileName, htaFile, htaContent
 htaFileName = tempFolder & GenerateRandomFileName("output", "hta")
 
-' Build the HTA content with an auto-fitting textarea and a resizable main window.
+' Build the HTA content:
+' - The outer window is set to 300x150 (half the previous size).
+' - The outer window has no scrollbars (overflow hidden).
+' - The window is resizable and has maximize/minimize buttons.
+' - The textarea fills the window (100% width and height) with its own scrollbars.
 htaContent = "<html>" & vbCrLf & _
     "<head>" & vbCrLf & _
     "  <title>Data Output</title>" & vbCrLf & _
@@ -203,14 +207,14 @@ htaContent = "<html>" & vbCrLf & _
     "    RESIZABLE='yes' " & vbCrLf & _
     "    MAXIMIZEBUTTON='yes' " & vbCrLf & _
     "    MINIMIZEBUTTON='yes' " & vbCrLf & _
-    "    WINDOWWIDTH='600' " & vbCrLf & _
-    "    WINDOWHEIGHT='300' " & vbCrLf & _
+    "    WINDOWWIDTH='300' " & vbCrLf & _
+    "    WINDOWHEIGHT='150' " & vbCrLf & _
     "    SINGLEINSTANCE='yes' " & vbCrLf & _
     "    SHOWINTASKBAR='yes'>" & vbCrLf & _
     "  </HTA:APPLICATION>" & vbCrLf & _
     "  <style>" & vbCrLf & _
-    "    html, body { width: 100%; height: 100%; margin: 0; padding: 0; }" & vbCrLf & _
-    "    textarea { width: 100%; height: 100%; box-sizing: border-box; font-family: sans-serif; }" & vbCrLf & _
+    "    html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }" & vbCrLf & _
+    "    textarea { width: 100%; height: 100%; box-sizing: border-box; font-family: sans-serif; overflow: auto; }" & vbCrLf & _
     "  </style>" & vbCrLf & _
     "</head>" & vbCrLf & _
     "<body>" & vbCrLf & _
