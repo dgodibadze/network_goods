@@ -29,24 +29,6 @@ Function GenerateRandomFileName(prefix, ext)
     GenerateRandomFileName = fileName
 End Function
 
-' Base64-encode a string using an ADODB.Stream and MSXML2.DOMDocument.
-Function Base64Encode(inData)
-    Dim stream, xml, node
-    Set stream = CreateObject("ADODB.Stream")
-    stream.Type = 2 ' text
-    stream.Charset = "utf-8"
-    stream.Open
-    stream.WriteText inData
-    stream.Position = 0
-    stream.Type = 1 ' binary
-    Set xml = CreateObject("MSXML2.DOMDocument")
-    Set node = xml.createElement("base64")
-    node.dataType = "bin.base64"
-    node.nodeTypedValue = stream.Read
-    Base64Encode = node.text
-    stream.Close
-End Function
-
 ' ============================
 ' Initialization & Setup
 ' ============================
@@ -95,13 +77,11 @@ clipboardText = GetClipboardText()
 modifiedText = clipboardText
 
 ' -------------------------------
-' Authentication Setup for Infoblox
+' Authentication Setup for Infoblox using API Token
 ' -------------------------------
-Dim username, password, credentials, authHeader
-username = "USERNAME234"
-password = InputBox("Enter Infoblox Password:", "Infoblox Authentication")
-credentials = username & ":" & password
-authHeader = "Basic " & Base64Encode(credentials)
+Dim token, authHeader
+token = "REPLACE_THIS_WITH_TOKEN"  ' Replace this with your actual token.
+authHeader = "token " & token
 
 ' ============================
 ' Extract IPv4 Addresses
@@ -136,7 +116,7 @@ For i = 0 To matches.Count - 1
         On Error Resume Next
         Set xmlHTTP = CreateObject("MSXML2.XMLHTTP")
         xmlHTTP.Open "GET", apiUrl, False
-        ' Set the Authorization header using the credentials.
+        ' Set the Authorization header using the API token.
         xmlHTTP.setRequestHeader "Authorization", authHeader
         xmlHTTP.Send
         If Err.Number <> 0 Then
@@ -221,7 +201,7 @@ Dim htaFileName, htaFile, htaContent
 htaFileName = tempFolder & GenerateRandomFileName("output", "hta")
 
 ' Build the HTA content:
-' - The outer window is set to 300x150 (half the previous size).
+' - The outer window is set to 300x150.
 ' - The outer window has no scrollbars (overflow hidden) and is resizable.
 ' - The textarea fills the outer window (100% width and height) with its own scrollbars (overflow auto).
 htaContent = "<html>" & vbCrLf & _
