@@ -66,7 +66,12 @@ If Not fso.FolderExists(tempFolder) Then
 End If
 
 ' Create an error log file in the temp folder.
-timestamp = Replace(Replace(CStr(Now), ":", "-"), " ", "_")
+timestamp = CStr(Now)
+' Replace invalid characters: colon, space, forward slash, and backslash.
+timestamp = Replace(timestamp, ":", "-")
+timestamp = Replace(timestamp, " ", "_")
+timestamp = Replace(timestamp, "/", "-")
+timestamp = Replace(timestamp, "\", "-")
 errorLogFileName = tempFolder & "error_log_" & timestamp & ".txt"
 Dim errorLogFile
 Set errorLogFile = fso.CreateTextFile(errorLogFileName, True)
