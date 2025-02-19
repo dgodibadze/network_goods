@@ -67,7 +67,7 @@ End If
 
 ' Create an error log file in the temp folder.
 timestamp = CStr(Now)
-' Replace invalid characters: colon, space, forward slash, and backslash.
+' Replace invalid filename characters.
 timestamp = Replace(timestamp, ":", "-")
 timestamp = Replace(timestamp, " ", "_")
 timestamp = Replace(timestamp, "/", "-")
@@ -85,8 +85,8 @@ modifiedText = clipboardText
 ' ============================
 Dim re, matches, i, currentIP
 Set re = New RegExp
-' Regex to match valid IPv4 addresses
-re.Pattern = "\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d?\d)\b"
+' Updated regex pattern for matching IPv4 addresses
+re.Pattern = "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}"
 re.Global = True
 
 Set matches = re.Execute(clipboardText)
@@ -127,7 +127,7 @@ For i = 0 To matches.Count - 1
                     errorLogFile.WriteLine "XML parsing error for IP " & currentIP & ": " & dom.parseError.reason
                     unresolvedIPs.Add currentIP, "XML parsing error"
                 Else
-                    ' Extract the hostname from the <host> element (always use hostname)
+                    ' Extract the hostname from the <host> element
                     Set hostNode = dom.selectSingleNode("//host")
                     If Not hostNode Is Nothing Then
                         hostname = hostNode.text
@@ -196,11 +196,12 @@ On Error GoTo 0
 Dim htaFileName, htaFile, htaContent
 htaFileName = tempFolder & GenerateRandomFileName("output", "hta")
 
-' Build the HTA content with a text area to display the data
+' Build the HTA content with a text area to display the data.
+' The HTA is now resizable (RESIZABLE="yes").
 htaContent = "<html>" & vbCrLf & _
     "<head>" & vbCrLf & _
     "  <title>Data Output</title>" & vbCrLf & _
-    "  <HTA:APPLICATION id='DataViewer' APPLICATIONNAME='DataViewer' " & _
+    "  <HTA:APPLICATION id='DataViewer' APPLICATIONNAME='DataViewer' RESIZABLE='yes' " & _
     "BORDER='thin' CAPTION='yes' SHOWINTASKBAR='yes' SINGLEINSTANCE='yes'>" & vbCrLf & _
     "  <style>body { font-family: sans-serif; margin: 10px; } " & _
     "textarea { width: 100%; height: 400px; }</style>" & vbCrLf & _
