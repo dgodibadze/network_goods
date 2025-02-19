@@ -15,7 +15,6 @@ Function GetClipboardText()
 End Function
 
 ' Subroutine to set clipboard text using an HTML file object.
-' (This method remains unchanged.)
 Sub SetClipboardText(newText)
     Dim html
     Set html = CreateObject("htmlfile")
@@ -75,7 +74,7 @@ errorLogFileName = tempFolder & "error_log_" & timestamp & ".txt"
 Dim errorLogFile
 Set errorLogFile = fso.CreateTextFile(errorLogFileName, True)
 
-' Retrieve the clipboard content using the new method.
+' Retrieve the clipboard content using PowerShell method.
 clipboardText = GetClipboardText()
 modifiedText = clipboardText
 
@@ -84,7 +83,7 @@ modifiedText = clipboardText
 ' ============================
 Dim re, matches, i, currentIP
 Set re = New RegExp
-' Updated regex pattern for matching IPv4 addresses.
+' Regex pattern for matching IPv4 addresses.
 re.Pattern = "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}"
 re.Global = True
 
@@ -97,7 +96,7 @@ debugIPs = "Debug Info - Found IP addresses:" & vbCrLf
 For i = 0 To matches.Count - 1
     debugIPs = debugIPs & matches(i).Value & vbCrLf
 Next
-' Append the debug info to the modified text.
+' Append debug info to the output text.
 modifiedText = modifiedText & vbCrLf & debugIPs & vbCrLf
 
 ' ============================
@@ -198,14 +197,28 @@ On Error GoTo 0
 Dim htaFileName, htaFile, htaContent
 htaFileName = tempFolder & GenerateRandomFileName("output", "hta")
 
-' Build the HTA content with a smaller, resizable window.
+' Build the HTA content with auto-fitting text area.
+' The CSS sets html and body to 100% width and height with no margins,
+' and the textarea uses width and height of 100% with box-sizing: border-box.
 htaContent = "<html>" & vbCrLf & _
     "<head>" & vbCrLf & _
     "  <title>Data Output</title>" & vbCrLf & _
     "  <HTA:APPLICATION id='DataViewer' APPLICATIONNAME='DataViewer' RESIZABLE='yes' WINDOWWIDTH='600' WINDOWHEIGHT='300' " & _
-    "BORDER='thin' CAPTION='yes' SHOWINTASKBAR='yes' SINGLEINSTANCE='yes'>" & vbCrLf & _
-    "  <style>body { font-family: sans-serif; margin: 10px; } " & _
-    "textarea { width: 100%; height: 250px; }</style>" & vbCrLf & _
+    "BORDER='thin' CAPTION='yes' SHOWINTASKBAR='yes' SINGLEINSTANCE='yes'/>" & vbCrLf & _
+    "  <style>" & vbCrLf & _
+    "    html, body {" & vbCrLf & _
+    "      width: 100%;" & vbCrLf & _
+    "      height: 100%;" & vbCrLf & _
+    "      margin: 0;" & vbCrLf & _
+    "      padding: 0;" & vbCrLf & _
+    "    }" & vbCrLf & _
+    "    textarea {" & vbCrLf & _
+    "      width: 100%;" & vbCrLf & _
+    "      height: 100%;" & vbCrLf & _
+    "      box-sizing: border-box;" & vbCrLf & _
+    "      font-family: sans-serif;" & vbCrLf & _
+    "    }" & vbCrLf & _
+    "  </style>" & vbCrLf & _
     "</head>" & vbCrLf & _
     "<body>" & vbCrLf & _
     "  <textarea id='dataText' readonly='true'>" & modifiedText & "</textarea>" & vbCrLf & _
