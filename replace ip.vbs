@@ -45,10 +45,16 @@ Set unresolvedIPs = CreateObject("Scripting.Dictionary")
 Dim logFolder
 logFolder = "C:\Users\"
 
-' Create an error log file in the predefined folder.
-Dim fso, timestamp, errorLogFileName
+' Create FileSystemObject and ensure the folder exists
+Dim fso
 Set fso = CreateObject("Scripting.FileSystemObject")
-timestamp = Replace(Replace(Now, ":", "-"), " ", "_")
+If Not fso.FolderExists(logFolder) Then
+    fso.CreateFolder(logFolder)
+End If
+
+' Create an error log file in the predefined folder.
+Dim timestamp, errorLogFileName
+timestamp = Replace(Replace(CStr(Now), ":", "-"), " ", "_")
 errorLogFileName = logFolder & "error_log_" & timestamp & ".txt"
 
 Dim errorLogFile
