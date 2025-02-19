@@ -44,12 +44,25 @@ Set unresolvedIPs = CreateObject("Scripting.Dictionary")
 ' Use the Windows temporary folder for all files.
 Dim tempFolder, shell, fso, timestamp, errorLogFileName
 Set shell = CreateObject("WScript.Shell")
-tempFolder = shell.ExpandEnvironmentStrings("%TEMP%") & "\"
+
+' Expand the %TEMP% environment variable and validate it.
+tempFolder = shell.ExpandEnvironmentStrings("%TEMP%")
+If tempFolder = "" Or tempFolder = "%TEMP%" Then
+    WScript.Echo "Error: Temporary folder not found. Please ensure the %TEMP% environment variable is set."
+    WScript.Quit
+End If
+If Right(tempFolder, 1) <> "\" Then tempFolder = tempFolder & "\"
 
 Set fso = CreateObject("Scripting.FileSystemObject")
-' (The temp folder should exist, but we can check if needed)
+' Confirm the temp folder exists.
 If Not fso.FolderExists(tempFolder) Then
+    On Error Resume Next
     fso.CreateFolder(tempFolder)
+    If Err.Number <> 0 Then
+        WScript.Echo "Error: Cannot create the temporary folder: " & tempFolder
+        WScript.Quit
+    End If
+    On Error GoTo 0
 End If
 
 ' Create an error log file in the temp folder.
