@@ -4,24 +4,23 @@ Option Explicit
 ' Helper Functions
 ' ============================
 
-' Alternative function to get clipboard text via PowerShell.
+' Get clipboard text using PowerShell's Get-Clipboard.
 Function GetClipboardText()
     Dim shell, exec, clipText
     Set shell = CreateObject("WScript.Shell")
-    ' Execute the PowerShell command to get clipboard contents.
     Set exec = shell.Exec("powershell -command Get-Clipboard")
     clipText = exec.StdOut.ReadAll()
     GetClipboardText = clipText
 End Function
 
-' Subroutine to set clipboard text using an HTML file object.
+' Set clipboard text using an HTML file object.
 Sub SetClipboardText(newText)
     Dim html
     Set html = CreateObject("htmlfile")
     html.ParentWindow.ClipboardData.SetData "Text", newText
 End Sub
 
-' Function to generate a random filename given a prefix and extension.
+' Generate a random filename given a prefix and extension.
 Function GenerateRandomFileName(prefix, ext)
     Dim randomNumber, fileName
     Randomize
@@ -33,8 +32,7 @@ End Function
 ' ============================
 ' Initialization & Setup
 ' ============================
-Dim clipboardText, modifiedText
-Dim totalIPs, resolvedCount
+Dim clipboardText, modifiedText, totalIPs, resolvedCount
 totalIPs = 0
 resolvedCount = 0
 
@@ -74,7 +72,7 @@ errorLogFileName = tempFolder & "error_log_" & timestamp & ".txt"
 Dim errorLogFile
 Set errorLogFile = fso.CreateTextFile(errorLogFileName, True)
 
-' Retrieve the clipboard content using PowerShell method.
+' Retrieve the clipboard content.
 clipboardText = GetClipboardText()
 modifiedText = clipboardText
 
@@ -83,7 +81,7 @@ modifiedText = clipboardText
 ' ============================
 Dim re, matches, i, currentIP
 Set re = New RegExp
-' Regex pattern for matching IPv4 addresses.
+' Regex pattern for matching standard IPv4 addresses.
 re.Pattern = "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}"
 re.Global = True
 
@@ -96,7 +94,7 @@ debugIPs = "Debug Info - Found IP addresses:" & vbCrLf
 For i = 0 To matches.Count - 1
     debugIPs = debugIPs & matches(i).Value & vbCrLf
 Next
-' Append debug info to the output text.
+' Append the debug info to the modified text.
 modifiedText = modifiedText & vbCrLf & debugIPs & vbCrLf
 
 ' ============================
@@ -122,7 +120,6 @@ For i = 0 To matches.Count - 1
             If xmlHTTP.Status = 200 Then
                 Dim responseXML
                 responseXML = xmlHTTP.responseText
-
                 Set dom = CreateObject("MSXML2.DOMDocument")
                 dom.async = False
                 dom.loadXML(responseXML)
@@ -163,7 +160,6 @@ Dim summaryText
 summaryText = vbCrLf & "---- Summary ----" & vbCrLf
 summaryText = summaryText & "Total IP addresses processed: " & totalIPs & vbCrLf
 summaryText = summaryText & "Hostnames successfully resolved: " & resolvedCount & vbCrLf
-
 If unresolvedIPs.Count > 0 Then
     summaryText = summaryText & "Unresolved IP addresses:" & vbCrLf
     For Each key In unresolvedIPs.Keys
@@ -172,12 +168,10 @@ If unresolvedIPs.Count > 0 Then
 Else
     summaryText = summaryText & "All IP addresses resolved successfully." & vbCrLf
 End If
-
 summaryText = summaryText & vbCrLf & "IP to Hostname Mapping:" & vbCrLf
 For Each key In resolvedMapping.Keys
     summaryText = summaryText & key & " -> " & resolvedMapping(key) & vbCrLf
 Next
-
 modifiedText = modifiedText & summaryText
 
 ' ============================
@@ -197,27 +191,26 @@ On Error GoTo 0
 Dim htaFileName, htaFile, htaContent
 htaFileName = tempFolder & GenerateRandomFileName("output", "hta")
 
-' Build the HTA content with auto-fitting text area.
-' The CSS sets html and body to 100% width and height with no margins,
-' and the textarea uses width and height of 100% with box-sizing: border-box.
+' Build the HTA content with an auto-fitting textarea and a resizable main window.
 htaContent = "<html>" & vbCrLf & _
     "<head>" & vbCrLf & _
     "  <title>Data Output</title>" & vbCrLf & _
-    "  <HTA:APPLICATION id='DataViewer' APPLICATIONNAME='DataViewer' RESIZABLE='yes' WINDOWWIDTH='600' WINDOWHEIGHT='300' " & _
-    "BORDER='thin' CAPTION='yes' SHOWINTASKBAR='yes' SINGLEINSTANCE='yes'/>" & vbCrLf & _
+    "  <HTA:APPLICATION " & vbCrLf & _
+    "    ID='DataViewer' " & vbCrLf & _
+    "    APPLICATIONNAME='DataViewer' " & vbCrLf & _
+    "    BORDER='thin' " & vbCrLf & _
+    "    CAPTION='yes' " & vbCrLf & _
+    "    RESIZABLE='yes' " & vbCrLf & _
+    "    MAXIMIZEBUTTON='yes' " & vbCrLf & _
+    "    MINIMIZEBUTTON='yes' " & vbCrLf & _
+    "    WINDOWWIDTH='600' " & vbCrLf & _
+    "    WINDOWHEIGHT='300' " & vbCrLf & _
+    "    SINGLEINSTANCE='yes' " & vbCrLf & _
+    "    SHOWINTASKBAR='yes'>" & vbCrLf & _
+    "  </HTA:APPLICATION>" & vbCrLf & _
     "  <style>" & vbCrLf & _
-    "    html, body {" & vbCrLf & _
-    "      width: 100%;" & vbCrLf & _
-    "      height: 100%;" & vbCrLf & _
-    "      margin: 0;" & vbCrLf & _
-    "      padding: 0;" & vbCrLf & _
-    "    }" & vbCrLf & _
-    "    textarea {" & vbCrLf & _
-    "      width: 100%;" & vbCrLf & _
-    "      height: 100%;" & vbCrLf & _
-    "      box-sizing: border-box;" & vbCrLf & _
-    "      font-family: sans-serif;" & vbCrLf & _
-    "    }" & vbCrLf & _
+    "    html, body { width: 100%; height: 100%; margin: 0; padding: 0; }" & vbCrLf & _
+    "    textarea { width: 100%; height: 100%; box-sizing: border-box; font-family: sans-serif; }" & vbCrLf & _
     "  </style>" & vbCrLf & _
     "</head>" & vbCrLf & _
     "<body>" & vbCrLf & _
@@ -229,12 +222,9 @@ Set htaFile = fso.CreateTextFile(htaFileName, True)
 htaFile.Write htaContent
 htaFile.Close
 
-' Close the error log file.
 errorLogFile.Close
 
-' ============================
-' Launch the HTA to Display the Output
-' ============================
+' Launch the HTA to display the output.
 shell.Run "mshta.exe """ & htaFileName & """", 1, False
 
-' End of Script
+' End of Script.
